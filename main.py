@@ -167,11 +167,120 @@ class RecipeRAGSystem:
         print("🔍 检索相关文档...")
         filters = self._extract_filters_from_query(question)
 
+        if filter:
+            print(f"应用过滤条件: {filters}")
+            relevant_chunks=self.retrieval_module.metadata_filtered_search(rewritten_query,filters,self.config.top_k)
+        else:
+            relevant_chunks = self.retrieval_module.hybrid_search(rewritten_query, top_k=self.config.top_k)
 
+          # 4. 检查是否找到相关内容
+        if not relevant_chunks:
+            return "抱歉，没有找到相关的食谱信息。请尝试其他菜品名称或关键词。"
+
+
+          # 5. 根据路由类型选择回答方式
+        if route_type == 'list':
+            # 列表查询：直接返回菜品名称列表
+            print("📋 生成菜品列表...")
+            relevant_docs = self.data_module.get_parent_documents(relevant_chunks)
+
+              # 显示找到的文档名称
+            doc_names = []
+            for doc in relevant_docs:
+                dish_name = doc.metadata.get('dish_name', '未知菜品')
+                doc_names.append(dish_name)
+
+            if doc_names:
+                print(f"找到文档: {', '.join(doc_names)}")
+
+            return self.generation_module.generate_list_answer(question, relevant_docs)
+
+        else:
+            
+            # 详细查询：获取完整文档并生成详细回答
+            print("获取完整文档...")
+            relevant_docs = self.data_module.get_parent_documents(relevant_chunks)
+
+            # 显示找到的文档名称
+            doc_names = []
+            for doc in relevant_docs:
+                dish_name = doc.metadata.get('dish_name', '未知菜品')
+                doc_names.append(dish_name)
+
+            if doc_names:
+                print(f"找到文档: {', '.join(doc_names)}")
+            else:
+                print(f"对应 {len(relevant_docs)} 个完整文档")
+
+            print("✍️ 生成详细回答...")
+
+            # 根据路由类型自动选择回答模式
+            if route_type == "detail":
+                # 详细查询使用分步指导模式
+                if stream:
+                    return self.generation_module.generate_step_by_step_answer_stream(question, relevant_docs)
+                else:
+                    return self.generation_module.generate_step_by_step_answer(question, relevant_docs)
+            else:
+                # 一般查询使用基础回答模式
+                if stream:
+                    return self.generation_module.generate_basic_answer_stream(question, relevant_docs)
+                else:
+                    return self.generation_module.generate_basic_answer(question, relevant_docs)
 
 
 
     
     def run_interactive(self):
         """运行交互式问答"""
-        pass
+        print("=" * 60)
+        print("🍽️  尝尝咸淡RAG系统 - 交互式问答  🍽️")
+        print("=" * 60)
+        print("💡 解决您的选择困难症，告别'今天吃什么'的世纪难题!")
+
+        self.initialize_system()
+
+        self.build_knowledge_base()
+        while True:
+            
+            try:
+                user_input = input("\n您的问题: ").strip()
+                if user_input.lower() in ['退出', 'quit', 'exit', '']:
+                    break
+                
+                # 询问是否使用流式输出
+                stream_choice = input("是否使用流式输出? (y/n, 默认y): ").strip().lower()
+                use_stream = stream_choice != 'n'
+
+                print("\n回答:")
+                if use_stream:
+                    # 流式输出
+                    for chunk in self.ask_question(user_input, stream=True):
+                        print(chunk, end="", flush=True)
+                    print("\n")
+                else:
+                    # 普通输出
+                    answer = self.ask_question(user_input, stream=False)
+                    print(f"{answer}\n")
+                
+            except KeyboardInterrupt:
+                break
+            except Exception as e:
+                print(f"处理问题时出错: {e}")
+        
+        print("\n感谢使用尝尝咸淡RAG系统！")
+
+
+def main():
+    """主函数"""
+    try:
+        rag_system=RecipeRAGSystem()
+
+        rag_system.run_interactive()
+
+    except Exception as e:
+        logger.error(f"系统运行出错: {e}")
+        print(f"系统错误: {e}")
+
+if __name__=="__main__":
+    main()
