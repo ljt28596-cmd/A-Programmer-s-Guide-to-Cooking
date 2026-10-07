@@ -390,7 +390,7 @@ class DataPreparationModule:
         for chunk in child_chunks:
             parent_id=chunk.metadata.get("parent_id")
             if parent_id:
-                parent_relevance["parent_id"]=parent_relevance.get("parent_id",0)+1
+                parent_relevance[parent_id]=parent_relevance.get(parent_id,0)+1
 
                 if parent_id not in parent_docs_map:
                     for doc in self.documents:

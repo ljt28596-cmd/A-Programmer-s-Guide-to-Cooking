@@ -167,7 +167,7 @@ class RecipeRAGSystem:
         print("🔍 检索相关文档...")
         filters = self._extract_filters_from_query(question)
 
-        if filter:
+        if filters:
             print(f"应用过滤条件: {filters}")
             relevant_chunks=self.retrieval_module.metadata_filtered_search(rewritten_query,filters,self.config.top_k)
         else:
