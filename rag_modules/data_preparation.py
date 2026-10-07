@@ -124,7 +124,8 @@ class DataPreparationModule:
     def get_supported_categories(cls)->List[str]:
         """对外提供支持的分类标签列表"""
         return cls.CATEGORY_TABELS
-
+    
+    @classmethod
     def get_supported_difficulties(cls)->List[str]:
         """对外提供支持的难度标签列表"""
         return cls.DIFFICULTY_TABELS
