@@ -146,7 +146,26 @@ class RecipeRAGSystem:
         Returns:
             生成的回答或生成器
         """
-        pass
+        if not all([self.retrieval_module,self.generation_module]):
+            raise ValueError("请先构建知识库")
+        
+        print(f"\n❓ 用户问题: {question}")
+        # 1. 查询路由
+        route_type=self.generation_module.query_router(question)
+        print(f"🎯 查询类型: {route_type}")
+
+        # 2. 智能查询重写（根据路由类型）
+        if route_type=='list':
+            rewritten_query=question
+            print(f"📝 列表查询保持原样: {question}")
+
+        else:
+            print("🤖 智能分析查询...")
+            rewritten_query = self.generation_module.query_rewrite(question)
+
+        # 3. 检索相关子块（自动应用元数据过滤）
+        print("🔍 检索相关文档...")
+        filters = self._extract_filters_from_query(question)
 
 
 
