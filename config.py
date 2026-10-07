@@ -11,7 +11,7 @@ class RAGConfig:
     embedding_model:str="BAAI/bge-small-zh-v1.5"
     llm_model:str="qwen3.7-flash"
 
-    top_k:int=3
+    top_k:int=5
 
     temperature:float=0.1
     max_tokens:int=4096

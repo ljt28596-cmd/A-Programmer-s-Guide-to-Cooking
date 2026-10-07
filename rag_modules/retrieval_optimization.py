@@ -39,7 +39,7 @@ class RetrievalOptimizationModule:
         logger.info("检索器设置完成")
 
 
-    def hybrid_search(self, query: str, top_k: int = 3) -> List[Document]:
+    def hybrid_search(self, query: str, top_k: int = 5) -> List[Document]:
         """
         混合检索 - 结合向量检索和BM25检索，使用RRF重排
 
@@ -75,10 +75,10 @@ class RetrievalOptimizationModule:
         doc_objects={}  #{doc_id:doc}
 
         for rank,doc in enumerate(vector_docs):
-            doc_id=doc.metadata.get("child_id") or hashlib.md5(
-                doc.page_content.encode('utf-8')
-                ).hexdigest()
-
+            # doc_id=doc.metadata.get("child_id") or hashlib.md5(
+            #     doc.page_content.encode('utf-8')
+            #     ).hexdigest()
+            doc_id=hashlib.md5(doc.page_content.encode('utf-8')).hexdigest()
             doc_objects[doc_id]=doc
 
             rrf_score=1.0/(k+rank+1)
@@ -88,9 +88,12 @@ class RetrievalOptimizationModule:
 
 
         for rank, doc in enumerate(bm25_docs):
-            doc_id=doc.metadata.get("child_id") or hashlib.md5(
-                            doc.page_content.encode('utf-8')
-                            ).hexdigest()
+            # doc_id=doc.metadata.get("child_id") or hashlib.md5(
+            #                 doc.page_content.encode('utf-8')
+            #                 ).hexdigest()  #错误的方法
+            
+            doc_id=hashlib.md5(doc.page_content.encode('utf-8')).hexdigest()
+            
             doc_objects[doc_id] = doc
 
             rrf_score = 1.0 / (k + rank + 1)
