@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 from langchain_core.documents import Document
 from langchain_community.retrievers import BM25Retriever
 import hashlib
-
+import jieba
 logger = logging.getLogger(__name__)
 
 class RetrievalOptimizationModule:
@@ -34,7 +34,8 @@ class RetrievalOptimizationModule:
         )
         self.bm25_retriever = BM25Retriever.from_documents(
             self.chunks,
-            k=5
+            k=5,
+            preprocess_func=jieba.lcut
         )
         logger.info("检索器设置完成")
 
